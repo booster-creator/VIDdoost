@@ -28,10 +28,18 @@ function initGoogleAuth() {
 
 function handleGoogleLogin() {
   if (!googleAuth) {
-    console.error('Google Auth not initialized');
-    return;
+    console.log('Google Auth not initialized, attempting to initialize...');
+    initGoogleAuth().then(() => {
+      performSignIn();
+    }).catch(error => {
+      console.error('Failed to initialize Google Auth:', error);
+    });
+  } else {
+    performSignIn();
   }
-  
+}
+
+function performSignIn() {
   googleAuth.signIn().then(googleUser => {
     const id_token = googleUser.getAuthResponse().id_token;
     sendTokenToServer(id_token);
@@ -58,11 +66,12 @@ function sendTokenToServer(token) {
   });
 }
 
-window.onload = () => {
+// 페이지 로드 시 Google Auth 초기화
+document.addEventListener('DOMContentLoaded', () => {
   initGoogleAuth().catch(error => {
     console.error('Failed to initialize Google Auth:', error);
   });
-};
+});
 
 // 전역 스코프에 함수 노출
 window.handleGoogleLogin = handleGoogleLogin;
