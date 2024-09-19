@@ -19,29 +19,32 @@ exports.handler = async (event, context) => {
     const data = await response.json();
 
     if (response.ok && data.items && data.items.length > 0) {
-      // 각 동영상의 세부 정보를 가져오기 위해 추가 API 호출
+      // 각 동영상의 세부 정보를 얻기 위해 추가 API 호출
       const videoIds = data.items.map(item => item.id.videoId);
-      const videoDetailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=${videoIds.join(',')}&key=${apiKey}`;
+      const videoDetailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&id=${videoIds.join(',')}&key=${apiKey}`;
       const videoDetailsResponse = await fetch(videoDetailsUrl);
       const videoDetailsData = await videoDetailsResponse.json();
 
-      // Hit 동영상 필터링
-      const hitVideos = videoDetailsData.items.filter(item => {
-        const viewCount = parseInt(item.statistics.viewCount);
-        const subscriberCount = parseInt(item.statistics.subscriberCount);
-        const subGrowthRate = (subscriberCount / (subscriberCount + viewCount + 0.1)) * 100;
+      // 1분 미만의 영상과 1분 이상의 영상 분류
+      const shortsVideos = [];
+      const regularVideos = [];
 
-        return (viewCount >= subscriberCount * 0.3) && (subGrowthRate > 0);
-      });
+      videoDetailsData.items.forEach(item => {
+        const duration = item.contentDetails.duration;
+        const match = duration.match(/PT(\d+)M(\d+)S/); // ISO 8601 형식의 시간 파싱
+        const minutes = match ? parseInt(match[1]) : 0;
+        const seconds = match ? parseInt(match[2]) : parseInt(duration.match(/PT(\d+)S/)[1]);
 
-      // 한 달 이내 조회수 순으로 정렬된 동영상
-      const recentVideos = videoDetailsData.items.sort((a, b) => {
-        return parseInt(b.statistics.viewCount) - parseInt(a.statistics.viewCount);
+        if (minutes === 0 && seconds < 60) {
+          shortsVideos.push(item);  // 1분 미만의 영상은 shorts로 분류
+        } else {
+          regularVideos.push(item);  // 1분 이상의 영상은 regular로 분류
+        }
       });
 
       return {
         statusCode: 200,
-        body: JSON.stringify({ hitVideos, recentVideos }),
+        body: JSON.stringify({ shortsVideos, regularVideos }),
       };
     } else {
       return {

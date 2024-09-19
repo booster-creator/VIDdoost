@@ -6,68 +6,7 @@
     <title>YouTube Content Booster</title>
     <link rel="stylesheet" href="styles.css">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #121212;
-            color: #FFFFFF;
-            margin: 0;
-            padding: 20px;
-        }
-
-        h1 {
-            color: #FFFFFF;
-        }
-
-        input[type="text"] {
-            padding: 10px;
-            width: 300px;
-            border-radius: 5px;
-            border: none;
-            margin-right: 10px;
-        }
-
-        button {
-            padding: 10px 15px;
-            background-color: #6200EA;
-            color: #FFFFFF;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #3700B3;
-        }
-
-        #results {
-            margin-top: 20px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        th, td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid #444444;
-        }
-
-        th {
-            background-color: #222222;
-            color: #BB86FC;
-        }
-
-        td a {
-            color: #BB86FC;
-            text-decoration: none;
-        }
-
-        td img {
-            max-width: 120px;
-        }
+        /* 기존 스타일 코드 포함 */
     </style>
 </head>
 <body>
@@ -89,7 +28,7 @@
                 const response = await fetch(`/.netlify/functions/search?q=${query}&publishedAfter=${publishedAfter}`);
                 const data = await response.json();
 
-                if (!data || (!data.hitVideos && !data.recentVideos)) {
+                if (!data || (!data.shortsVideos && !data.regularVideos)) {
                     console.log('검색 결과가 없습니다.');
                     return;
                 }
@@ -97,41 +36,90 @@
                 const resultsDiv = document.getElementById('results');
                 resultsDiv.innerHTML = ''; // 이전 결과 지우기
 
-                const table = document.createElement('table');
-                const headerRow = document.createElement('tr');
-                const headers = ['Thumbnail', 'Title', 'Views', 'Date', 'Channel', 'Subscribers'];
-                headers.forEach(headerText => {
-                    const th = document.createElement('th');
-                    th.textContent = headerText;
-                    headerRow.appendChild(th);
-                });
-                table.appendChild(headerRow);
+                // shortsVideos 표시
+                if (data.shortsVideos.length > 0) {
+                    const shortsHeader = document.createElement('h2');
+                    shortsHeader.textContent = '🎥 Shorts 동영상';
+                    resultsDiv.appendChild(shortsHeader);
 
-                const allVideos = [...data.hitVideos, ...data.recentVideos];
-                allVideos.forEach(item => {
-                    const row = document.createElement('tr');
+                    const table = document.createElement('table');
+                    const headerRow = document.createElement('tr');
+                    const headers = ['Thumbnail', 'Title', 'Views', 'Date', 'Channel', 'Subscribers'];
+                    headers.forEach(headerText => {
+                        const th = document.createElement('th');
+                        th.textContent = headerText;
+                        headerRow.appendChild(th);
+                    });
+                    table.appendChild(headerRow);
 
-                    const thumbnailUrl = item.snippet.thumbnails.default.url;
-                    const title = item.snippet.title;
-                    const viewCount = item.statistics.viewCount;
-                    const publishedAt = new Date(item.snippet.publishedAt).toLocaleDateString();
-                    const channelTitle = item.snippet.channelTitle;
-                    const subscriberCount = item.statistics.subscriberCount || 'N/A';
-                    const videoUrl = `https://www.youtube.com/watch?v=${item.id}`;
+                    data.shortsVideos.forEach(item => {
+                        const row = document.createElement('tr');
 
-                    row.innerHTML = `
-                        <td><img src="${thumbnailUrl}" alt="Thumbnail"></td>
-                        <td><a href="${videoUrl}" target="_blank">${title}</a></td>
-                        <td>${viewCount}</td>
-                        <td>${publishedAt}</td>
-                        <td>${channelTitle}</td>
-                        <td>${subscriberCount}</td>
-                    `;
+                        const thumbnailUrl = item.snippet.thumbnails.default.url;
+                        const title = item.snippet.title;
+                        const viewCount = item.statistics.viewCount;
+                        const publishedAt = new Date(item.snippet.publishedAt).toLocaleDateString();
+                        const channelTitle = item.snippet.channelTitle;
+                        const subscriberCount = item.statistics.subscriberCount || 'N/A';
+                        const videoUrl = `https://www.youtube.com/watch?v=${item.id}`;
 
-                    table.appendChild(row);
-                });
+                        row.innerHTML = `
+                            <td><img src="${thumbnailUrl}" alt="Thumbnail"></td>
+                            <td><a href="${videoUrl}" target="_blank">${title}</a></td>
+                            <td>${viewCount}</td>
+                            <td>${publishedAt}</td>
+                            <td>${channelTitle}</td>
+                            <td>${subscriberCount}</td>
+                        `;
 
-                resultsDiv.appendChild(table);
+                        table.appendChild(row);
+                    });
+
+                    resultsDiv.appendChild(table);
+                }
+
+                // regularVideos 표시
+                if (data.regularVideos.length > 0) {
+                    const regularHeader = document.createElement('h2');
+                    regularHeader.textContent = '📊 유튜브 트렌드를 파악했습니다!';
+                    resultsDiv.appendChild(regularHeader);
+
+                    const table = document.createElement('table');
+                    const headerRow = document.createElement('tr');
+                    const headers = ['Thumbnail', 'Title', 'Views', 'Date', 'Channel', 'Subscribers'];
+                    headers.forEach(headerText => {
+                        const th = document.createElement('th');
+                        th.textContent = headerText;
+                        headerRow.appendChild(th);
+                    });
+                    table.appendChild(headerRow);
+
+                    data.regularVideos.forEach(item => {
+                        const row = document.createElement('tr');
+
+                        const thumbnailUrl = item.snippet.thumbnails.default.url;
+                        const title = item.snippet.title;
+                        const viewCount = item.statistics.viewCount;
+                        const publishedAt = new Date(item.snippet.publishedAt).toLocaleDateString();
+                        const channelTitle = item.snippet.channelTitle;
+                        const subscriberCount = item.statistics.subscriberCount || 'N/A';
+                        const videoUrl = `https://www.youtube.com/watch?v=${item.id}`;
+
+                        row.innerHTML = `
+                            <td><img src="${thumbnailUrl}" alt="Thumbnail"></td>
+                            <td><a href="${videoUrl}" target="_blank">${title}</a></td>
+                            <td>${viewCount}</td>
+                            <td>${publishedAt}</td>
+                            <td>${channelTitle}</td>
+                            <td>${subscriberCount}</td>
+                        `;
+
+                        table.appendChild(row);
+                    });
+
+                    resultsDiv.appendChild(table);
+                }
+
             } catch (error) {
                 console.error('검색 중 오류 발생:', error);
             }
