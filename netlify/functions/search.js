@@ -38,12 +38,18 @@ exports.handler = async (event, context) => {
     const videoDetailsResponse = await fetch(videoDetailsUrl);
     const videoDetailsData = await videoDetailsResponse.json();
 
+    if (!videoDetailsData.items || videoDetailsData.items.length === 0) {
+        console.log('No video details found');
+        throw new Error('No video details found.');
+    }
+
     // 1분 미만의 영상과 1분 이상의 영상을 분류
     const shortsVideos = [];
     const regularVideos = [];
 
     videoDetailsData.items.forEach(item => {
         const duration = item.contentDetails.duration;
+        console.log(`Processing video: ${item.snippet.title}, duration: ${duration}`);
         const match = duration.match(/PT(\d+)M(\d+)S/); // ISO 8601 형식의 시간 파싱
         const minutes = match ? parseInt(match[1]) : 0;
         const seconds = match ? parseInt(match[2]) : parseInt(duration.match(/PT(\d+)S/)[1]);
