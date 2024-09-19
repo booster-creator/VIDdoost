@@ -50,14 +50,19 @@ exports.handler = async (event, context) => {
     videoDetailsData.items.forEach(item => {
         const duration = item.contentDetails.duration;
         console.log(`Processing video: ${item.snippet.title}, duration: ${duration}`);
-        const match = duration.match(/PT(\d+)M(\d+)S/); // ISO 8601 형식의 시간 파싱
-        const minutes = match ? parseInt(match[1]) : 0;
-        const seconds = match ? parseInt(match[2]) : parseInt(duration.match(/PT(\d+)S/)[1]);
 
-        if (minutes === 0 && seconds < 60) {
-          shortsVideos.push(item);  // 1분 미만의 영상은 shorts로 분류
+        if (duration) {
+            const match = duration.match(/PT(\d+)M(\d+)S/) || duration.match(/PT(\d+)M/) || duration.match(/PT(\d+)S/); 
+            const minutes = match && match[1] ? parseInt(match[1]) : 0;
+            const seconds = match && match[2] ? parseInt(match[2]) : 0;
+
+            if (minutes === 0 && seconds < 60) {
+              shortsVideos.push(item);  // 1분 미만의 영상은 shorts로 분류
+            } else {
+              regularVideos.push(item);  // 1분 이상의 영상은 regular로 분류
+            }
         } else {
-          regularVideos.push(item);  // 1분 이상의 영상은 regular로 분류
+            console.log(`Skipping video: ${item.snippet.title}, duration is null or undefined`);
         }
     });
 
