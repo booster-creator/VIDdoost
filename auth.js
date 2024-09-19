@@ -1,16 +1,22 @@
 function initGoogleAuth() {
-    gapi.load('auth2', function() {
-      gapi.auth2.init({
-        client_id: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com', // Netlify 환경 변수에서 가져오는 것이 좋습니다
-        scope: 'https://www.googleapis.com/auth/youtube.readonly'
-      }).then(function() {
-        console.log('Google Auth initialized');
-      }).catch(function(error) {
-        console.error('Error initializing Google Auth:', error);
+  fetch('/.netlify/functions/get-client-id')
+    .then(response => response.json())
+    .then(data => {
+      gapi.load('auth2', function() {
+        gapi.auth2.init({
+          client_id: data.clientId,
+          scope: 'https://www.googleapis.com/auth/youtube.readonly'
+        }).then(function() {
+          console.log('Google Auth initialized');
+        }).catch(function(error) {
+          console.error('Error initializing Google Auth:', error);
+        });
       });
-    });
-  }
-  
+    })
+    .catch(error => console.error('Error fetching client ID:', error));
+}
+
+// ... 나머지 코드는 동일 ...
   function handleGoogleLogin() {
     const auth2 = gapi.auth2.getAuthInstance();
     auth2.signIn().then(function(googleUser) {
