@@ -1,25 +1,24 @@
 function initGoogleAuth() {
     gapi.load('auth2', function() {
       gapi.auth2.init({
-        client_id: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
+        client_id: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com', // Netlify 환경 변수에서 가져오는 것이 좋습니다
         scope: 'https://www.googleapis.com/auth/youtube.readonly'
       }).then(function() {
         console.log('Google Auth initialized');
-        // 로그인 버튼에 이벤트 리스너 추가
-        document.getElementById('google-login-button').addEventListener('click', signIn);
+      }).catch(function(error) {
+        console.error('Error initializing Google Auth:', error);
       });
     });
   }
   
-  function signIn() {
+  function handleGoogleLogin() {
     const auth2 = gapi.auth2.getAuthInstance();
     auth2.signIn().then(function(googleUser) {
-      // 로그인 성공 처리
       const id_token = googleUser.getAuthResponse().id_token;
       // 서버로 토큰 전송
       sendTokenToServer(id_token);
     }).catch(function(error) {
-      console.error('Error during sign in', error);
+      console.error('Error during Google sign in:', error);
     });
   }
   
@@ -34,12 +33,14 @@ function initGoogleAuth() {
     .then(response => response.json())
     .then(data => {
       console.log('Success:', data);
-      // 로그인 성공 후 처리 (예: 페이지 리디렉션)
+      // 로그인 성공 후 처리
     })
     .catch((error) => {
       console.error('Error:', error);
     });
   }
   
-  // 페이지 로드 시 Google Auth 초기화
   window.onload = initGoogleAuth;
+  
+  // 전역 스코프에 함수 노출
+  window.handleGoogleLogin = handleGoogleLogin;
