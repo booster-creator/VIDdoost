@@ -66,10 +66,19 @@ exports.handler = async (event, context) => {
         }
     });
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ shortsVideos, regularVideos }),
-    };
+    // shortsOnly가 true일 때만 shortsVideos와 regularVideos 모두 반환, 아니면 regularVideos만 반환
+    if (shortsOnly) {
+        return {
+            statusCode: 200,
+            body: JSON.stringify({ shortsVideos, regularVideos }),
+        };
+    } else {
+        return {
+            statusCode: 200,
+            body: JSON.stringify({ regularVideos }),
+        };
+    }
+
   } catch (error) {
     console.log(`Error occurred: ${error.message}`);
     return {

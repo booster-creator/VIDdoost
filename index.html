@@ -42,10 +42,13 @@
                 const resultsDiv = document.getElementById('results');
                 resultsDiv.innerHTML = ''; 
 
-                // 1분 미만의 영상(Shorts) 및 1분 이상의 영상 모두 표시
-                const videosToDisplay = shortsOnly ? [...data.shortsVideos, ...data.regularVideos] : data.regularVideos;
+                // 체크박스가 체크된 경우, shortsVideos와 regularVideos 모두 표시
+                // 체크박스가 체크되지 않은 경우, regularVideos만 표시
+                const videosToDisplay = shortsOnly && data.shortsVideos 
+                    ? [...data.shortsVideos, ...data.regularVideos] 
+                    : data.regularVideos;
 
-                if (videosToDisplay.length > 0) {
+                if (videosToDisplay && videosToDisplay.length > 0) {
                     videosToDisplay.forEach(item => {
                         const thumbnailUrl = item.snippet.thumbnails.default.url;
                         const title = item.snippet.title;
