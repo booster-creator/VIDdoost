@@ -1,36 +1,51 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube BOOSTER 🚀</title>
+    <title>YouTube BOOSTER</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <header>
-        <h1>YouTube BOOSTER 🚀</h1>
-        <p>키워드를 입력하여 최신 트렌드 영상을 확인하세요.</p>
+        <!-- 기존 헤더 내용 -->
     </header>
-    
-    <input type="text" id="searchInput" placeholder="검색어를 입력하세요">
-    
-    <label>
-        <input type="checkbox" id="shortsCheckbox"> SHORTS 포함
-    </label>
-    
-    <button onclick="searchVideos()">검색</button>
 
-    <div id="results"></div>
+    <main>
+        <section class="search-section">
+            <h2>YouTube BOOSTER 🚀</h2>
+            <p>키워드를 입력하여 최신 트렌드 영상을 확인하세요.</p>
+            <input type="text" id="searchInput" placeholder="키워드 입력">
+            <label class="checkbox-label">
+                <input type="checkbox" id="shortsCheckbox"> SHORTS 포함
+            </label>
+            <button onclick="searchVideos()">검색</button>
+        </section>
+
+        <section id="results"></section>
+
+        <section class="analytics-section">
+            <h2>YouTube 성과 분석 도구</h2>
+            <p>Google 계정으로 로그인하여 채널 성과를 분석하세요.</p>
+            <button id="loginButton" onclick="handleGoogleLogin()">Google로 로그인</button>
+            <div id="channelList" style="display: none;">
+                <h3>연동할 채널 선택:</h3>
+                <ul id="channelListItems"></ul>
+            </div>
+            <div id="dashboard" style="display: none;">
+                <h3>채널 성과 대시보드</h3>
+                <div id="performanceMetrics"></div>
+                <div id="recentVideos"></div>
+            </div>
+        </section>
+    </main>
 
     <footer>
-        <div>
-            <a href="#">이용약관</a> | 
-            <a href="#">개인정보처리방침</a> | 
-            <a href="#">사업자 정보</a>
-        </div>
+        <a href="#">이용약관</a> | <a href="#">개인정보처리방침</a> | <a href="#">사업자 정보</a>
         <p>© 2024 선약 Lab</p>
     </footer>
 
-    <script src="search.js"></script> <!-- 클라이언트 측 JavaScript 파일 불러오기 -->
-</body> 
+    <script src="search.js"></script>
+    <script src="analytics.js"></script>
+</body>
 </html>
