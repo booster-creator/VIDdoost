@@ -36,6 +36,19 @@ exports.handler = async function(event, context) {
     return {
       statusCode: 500,
       body: JSON.stringify({ error: '채널 정보를 가져오는 데 실패했습니다.' })
+
+      exports.handler = async function(event, context) {
+        console.log('get-channels 함수 시작');
+        try {
+          // ... 기존 코드 ...
+          console.log('YouTube API 응답:', response);
+          // ... 기존 코드 ...
+        } catch (error) {
+          console.error('오류 발생:', error);
+          // ... 기존 코드 ...
+        }
+      };
+
     };
   }
 };
