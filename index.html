@@ -15,99 +15,70 @@
     <div id="results"></div>
 
     <script>
-    async function searchVideos() {
-        const query = document.getElementById('searchInput').value;
-        const oneMonthAgo = new Date();
-        oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-        const publishedAfter = oneMonthAgo.toISOString();
+        async function searchVideos() {
+            const query = document.getElementById('searchInput').value;
+            const oneMonthAgo = new Date();
+            oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+            const publishedAfter = oneMonthAgo.toISOString();
 
-        try {
-            const response = await fetch(`/.netlify/functions/search?q=${query}&publishedAfter=${publishedAfter}&order=viewCount`);
-            const data = await response.json();
+            try {
+                const response = await fetch(`/.netlify/functions/search?q=${query}&publishedAfter=${publishedAfter}`);
+                const data = await response.json();
 
-            if (!data || data.length === 0) {
-                console.log('검색 결과가 없습니다.');
-                return;
+                if (!data || (!data.hitVideos && !data.recentVideos)) {
+                    console.log('검색 결과가 없습니다.');
+                    return;
+                }
+
+                const resultsDiv = document.getElementById('results');
+                resultsDiv.innerHTML = ''; // 이전 결과 지우기
+
+                // Hit 동영상 표시
+                if (data.hitVideos.length > 0) {
+                    const hitHeader = document.createElement('h2');
+                    hitHeader.textContent = 'Hit 동영상';
+                    resultsDiv.appendChild(hitHeader);
+
+                    data.hitVideos.forEach(item => {
+                        const title = item.snippet.title;
+                        const viewCount = item.statistics.viewCount;
+                        const subscriberCount = item.statistics.subscriberCount;
+
+                        const videoElement = document.createElement('div');
+                        videoElement.innerHTML = `
+                            <h3>${title}</h3>
+                            <p>조회수: ${viewCount}</p>
+                            <p>구독자 수: ${subscriberCount}</p>
+                        `;
+                        resultsDiv.appendChild(videoElement);
+                    });
+                }
+
+                // 한 달 이내 조회수 순으로 정렬된 동영상 표시
+                if (data.recentVideos.length > 0) {
+                    const recentHeader = document.createElement('h2');
+                    recentHeader.textContent = '최근 한 달 동안의 인기 동영상';
+                    resultsDiv.appendChild(recentHeader);
+
+                    data.recentVideos.forEach(item => {
+                        const title = item.snippet.title;
+                        const viewCount = item.statistics.viewCount;
+                        const subscriberCount = item.statistics.subscriberCount;
+
+                        const videoElement = document.createElement('div');
+                        videoElement.innerHTML = `
+                            <h3>${title}</h3>
+                            <p>조회수: ${viewCount}</p>
+                            <p>구독자 수: ${subscriberCount}</p>
+                        `;
+                        resultsDiv.appendChild(videoElement);
+                    });
+                }
+
+            } catch (error) {
+                console.error('검색 중 오류 발생:', error);
             }
-
-            const videoIds = data.items.map(item => item.id.videoId).join(',');
-            const videoDetailsResponse = await fetch(`https://www.googleapis.com/youtube/v3/videos?key=YOUR_API_KEY&part=snippet,statistics&id=${videoIds}`);
-            const videoDetails = await videoDetailsResponse.json();
-
-            const videoData = [];
-
-            videoDetails.items.forEach(item => {
-                const title = item.snippet.title;
-                const videoId = item.id;
-                const url = `https://www.youtube.com/watch?v=${videoId}`;
-                const viewCount = parseInt(item.statistics.viewCount);
-                const likeCount = item.statistics.likeCount || 0;
-                const publishedAt = new Date(item.snippet.publishedAt).toLocaleDateString();
-                const channelId = item.snippet.channelId;
-                const thumbnailUrl = item.snippet.thumbnails.default.url;
-                const hashtags = item.snippet.tags ? item.snippet.tags.join(', ') : '';
-
-                const subscriberCount = item.statistics.subscriberCount || 0;
-                const subGrowthRate = (subscriberCount / (subscriberCount + viewCount + 0.1)) * 100;
-
-                // Hit 영상 조건: 조회수가 구독자 수의 두 배 이상이거나, 구독자 성장률이 양수
-                const isHit = viewCount > subscriberCount * 2 || subGrowthRate > 0;
-
-                videoData.push({
-                    title,
-                    url,
-                    viewCount,
-                    likeCount,
-                    publishedAt,
-                    thumbnailUrl,
-                    hashtags,
-                    isHit
-                });
-            });
-
-            // 조회수 기준으로 정렬
-            videoData.sort((a, b) => b.viewCount - a.viewCount);
-
-            displayResults(videoData);
-        } catch (error) {
-            console.error('검색 중 오류 발생:', error);
         }
-    }
-
-    function displayResults(videos) {
-        const resultsDiv = document.getElementById('results');
-        resultsDiv.innerHTML = '';
-
-        const table = document.createElement('table');
-        table.classList.add('results-table');
-
-        const headerRow = document.createElement('tr');
-        headerRow.innerHTML = `
-            <th>Thumbnail</th>
-            <th>Title</th>
-            <th>View Count</th>
-            <th>Published At</th>
-            <th>Hit 여부</th>
-        `;
-        table.appendChild(headerRow);
-
-        videos.forEach(video => {
-            const row = document.createElement('tr');
-            row.classList.add('result-row');
-
-            row.innerHTML = `
-                <td><img src="${video.thumbnailUrl}" alt="thumbnail"></td>
-                <td><a href="${video.url}" target="_blank">${video.title}</a></td>
-                <td>${video.viewCount.toLocaleString()}</td>
-                <td>${video.publishedAt}</td>
-                <td>${video.isHit ? 'Hit' : ''}</td>
-            `;
-
-            table.appendChild(row);
-        });
-
-        resultsDiv.appendChild(table);
-    }
     </script>
 </body>
 </html>
