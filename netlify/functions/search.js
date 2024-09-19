@@ -44,22 +44,22 @@ exports.handler = async (event, context) => {
             const minutes = match && match[1] ? parseInt(match[1]) : 0;
             const seconds = match && match[2] ? parseInt(match[2]) : 0;
 
-            // 59초를 기준으로 1분 미만의 영상과 그 이상의 영상을 구분
-            if ((minutes === 0 && seconds <= 59)) {
-                shortsVideos.push(item);  // 59초 이하의 영상은 shorts로 분류
-            } else {
-                regularVideos.push(item);  // 1분 이상의 영상은 regular로 분류
+            // 58초 이하의 영상과 1분 1초 이상의 영상을 구분
+            if (minutes === 0 && seconds <= 58) {
+                shortsVideos.push(item);  // 58초 이하의 영상은 shorts로 분류
+            } else if (minutes >= 1 || (minutes === 0 && seconds >= 61)) {
+                regularVideos.push(item);  // 1분 1초 이상의 영상은 regular로 분류
             }
         });
 
         if (shortsOnly) {
-            // shortsOnly가 true인 경우, 59초 이하의 영상만 반환
+            // shortsOnly가 true인 경우, 58초 이하의 영상만 반환
             return {
                 statusCode: 200,
                 body: JSON.stringify({ shortsVideos }),
             };
         } else {
-            // shortsOnly가 false인 경우, 1분 이상의 영상만 반환
+            // shortsOnly가 false인 경우, 1분 1초 이상의 영상만 반환
             return {
                 statusCode: 200,
                 body: JSON.stringify({ regularVideos }),
