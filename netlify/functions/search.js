@@ -1,83 +1,47 @@
-const fetch = require('node-fetch');
+async function searchVideos() {
+  const query = document.getElementById('searchInput').value;
+  const shortsOnly = document.getElementById('shortsCheckbox').checked;
+  const oneMonthAgo = new Date();
+  oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+  const publishedAfter = oneMonthAgo.toISOString();
 
-exports.handler = async (event, context) => {
-    console.log("Handler started");
-    const query = event.queryStringParameters.q;
-    const publishedAfter = event.queryStringParameters.publishedAfter;
-    const shortsOnly = event.queryStringParameters.shortsOnly === 'true';
-    const apiKey = process.env.YOUTUBE_API_KEY;
+  try {
+      const response = await fetch(`/.netlify/functions/search?q=${query}&publishedAfter=${publishedAfter}&shortsOnly=${shortsOnly}`);
+      const data = await response.json();
 
-    if (!query || !publishedAfter) {
-        console.log("Missing query or publishedAfter parameter");
-        return {
-            statusCode: 400,
-            body: JSON.stringify({ error: 'Missing required query parameters' }),
-        };
-    }
+      // 검색 결과가 없을 때
+      if ((!data.shortsVideos || data.shortsVideos.length === 0) && (!data.regularVideos || data.regularVideos.length === 0)) {
+          console.log('검색 결과가 없습니다.');
+          document.getElementById('results').innerHTML = '<p>검색 결과가 없습니다.</p>';
+          return;
+      }
 
-    try {
-        console.log("Sending request to YouTube API");
-        const youtubeApiUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q=${query}&publishedAfter=${publishedAfter}&maxResults=50&order=viewCount&key=${apiKey}`;
-        const response = await fetch(youtubeApiUrl);
-        const data = await response.json();
+      // 결과 표시 영역 초기화
+      const resultsDiv = document.getElementById('results');
+      resultsDiv.innerHTML = ''; 
 
-        if (!data.items || data.items.length === 0) {
-            return {
-                statusCode: 200,
-                body: JSON.stringify({ shortsVideos: [], regularVideos: [] }),
-            };
-        }
+      const videosToDisplay = shortsOnly ? data.shortsVideos : data.regularVideos;
 
-        const videoIds = data.items.map(item => item.id.videoId);
-        const videoDetailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&id=${videoIds.join(',')}&key=${apiKey}`;
-        const videoDetailsResponse = await fetch(videoDetailsUrl);
-        const videoDetailsData = await videoDetailsResponse.json();
+      videosToDisplay.forEach(item => {
+          const thumbnailUrl = item.snippet.thumbnails.default.url;
+          const title = item.snippet.title;
+          const viewCount = item.statistics.viewCount;
+          const publishedAt = new Date(item.snippet.publishedAt).toLocaleDateString();
+          const channelTitle = item.snippet.channelTitle;
+          const videoUrl = `https://www.youtube.com/watch?v=${item.id}`;
 
-        const shortsVideos = [];
-        const regularVideos = [];
+          const videoElement = `
+              <div>
+                  <img src="${thumbnailUrl}" alt="Thumbnail">
+                  <a href="${videoUrl}" target="_blank">${title}</a>
+                  <p>${viewCount} views - ${publishedAt} - ${channelTitle}</p>
+              </div>
+          `;
+          resultsDiv.innerHTML += videoElement;
+      });
 
-        for (const item of videoDetailsData.items) {
-            const videoId = item.id;
-            const videoUrl = `https://www.youtube.com/shorts/${videoId}`;
-            const duration = item.contentDetails.duration;
-
-            const match = duration.match(/PT(?:(\d+)M)?(?:(\d+)S)?/);
-            const minutes = match && match[1] ? parseInt(match[1]) : 0;
-            const seconds = match && match[2] ? parseInt(match[2]) : 0;
-
-            // 58초 이하의 영상과 1분 1초 이상의 영상을 구분
-            if (minutes === 0 && seconds <= 58) {
-                // 숏츠 URL이 유효한지 확인
-                const shortsResponse = await fetch(videoUrl);
-                if (shortsResponse.ok) {
-                    shortsVideos.push(item);  // 58초 이하의 유효한 숏츠 URL을 가진 영상은 shorts로 분류
-                } else {
-                    regularVideos.push(item);  // 숏츠 URL이 유효하지 않으면 regular로 분류
-                }
-            } else if (minutes >= 1 || (minutes === 0 && seconds >= 61)) {
-                regularVideos.push(item);  // 1분 1초 이상의 영상은 regular로 분류
-            }
-        }
-
-        if (shortsOnly) {
-            // shortsOnly가 true인 경우, 58초 이하의 숏츠 URL이 유효한 영상만 반환
-            return {
-                statusCode: 200,
-                body: JSON.stringify({ shortsVideos }),
-            };
-        } else {
-            // shortsOnly가 false인 경우, 1분 1초 이상의 영상만 반환
-            return {
-                statusCode: 200,
-                body: JSON.stringify({ regularVideos }),
-            };
-        }
-
-    } catch (error) {
-        console.log(`Error occurred: ${error.message}`);
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ error: error.message }),
-        };
-    }
-};
+  } catch (error) {
+      console.error('검색 중 오류 발생:', error);
+      document.getElementById('results').innerHTML = '<p>검색 중 오류가 발생했습니다.</p>';
+  }
+}

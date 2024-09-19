@@ -7,47 +7,32 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- 상단 네비게이션 바 -->
     <header>
-        <div class="menu-icon">
-            <span>☰</span>
-        </div>
-        <div class="title">
-            <h1>🚀YOUTUBE BOOSTER🚀</h1>
-            <p>    나만의 AI 컨텐츠 분석기     </p>
-        </div>
-        <div class="login-signup">
-            <a href="#">로그인/회원가입</a>
-        </div>
+        <h1>YouTube BOOSTER 🚀</h1>
+        <p>키워드를 입력하여 최신 트렌드 영상을 확인하세요.</p>
     </header>
-
-    <!-- 검색 섹션 -->
-    <section class="search-section">
-        <h2>키워드를 입력하여 최신 트렌드 영상을 확인하세요.</h2>
-        <input type="text" id="searchInput" placeholder="검색어를 입력하세요">
-        
-        <!-- 체크박스 추가 -->
-        <label class="checkbox-label">
-            <input type="checkbox" id="shortsCheckbox"> SHORTS 포함
-        </label>
-        
-        <button onclick="searchVideos()">검색</button>
-    </section>
+    
+    <input type="text" id="searchInput" placeholder="검색어를 입력하세요">
+    
+    <!-- 체크박스 추가 -->
+    <label>
+        <input type="checkbox" id="shortsCheckbox"> SHORTS 포함
+    </label>
+    
+    <button onclick="searchVideos()">검색</button>
 
     <!-- 결과를 표시할 영역 -->
     <div id="results"></div>
 
-    <!-- 푸터 섹션 -->
     <footer>
-        <div class="footer-content">
-            <span>@ 2024 선약 Lab</span>
+        <div>
             <a href="#">이용약관</a> | 
             <a href="#">개인정보처리방침</a> | 
             <a href="#">사업자 정보</a>
         </div>
+        <p>© 2024 로아트 Lab</p>
     </footer>
 
-    <script src="search.js"></script>
-
+    <script src="search.js"></script> <!-- search.js 파일을 불러옵니다. -->
 </body> 
-</html>  
+</html>
