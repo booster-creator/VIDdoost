@@ -3,6 +3,7 @@ const fetch = require('node-fetch');
 exports.handler = async (event, context) => {
   const query = event.queryStringParameters.q;
   const publishedAfter = event.queryStringParameters.publishedAfter;
+  const shortsOnly = event.queryStringParameters.shortsOnly === 'true';  // 체크박스의 상태를 받아옵니다.
   const apiKey = process.env.YOUTUBE_API_KEY;
 
   if (!query || !publishedAfter) {
@@ -13,19 +14,17 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    // YouTube API에서 동영상 검색
     const youtubeApiUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q=${query}&publishedAfter=${publishedAfter}&maxResults=50&order=viewCount&key=${apiKey}`;
     const response = await fetch(youtubeApiUrl);
     const data = await response.json();
 
     if (response.ok && data.items && data.items.length > 0) {
-      // 각 동영상의 세부 정보를 얻기 위해 추가 API 호출
       const videoIds = data.items.map(item => item.id.videoId);
       const videoDetailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&id=${videoIds.join(',')}&key=${apiKey}`;
       const videoDetailsResponse = await fetch(videoDetailsUrl);
       const videoDetailsData = await videoDetailsResponse.json();
 
-      // 1분 미만의 영상과 1분 이상의 영상 분류
+      // 1분 미만의 영상과 1분 이상의 영상을 분류
       const shortsVideos = [];
       const regularVideos = [];
 
@@ -55,7 +54,7 @@ exports.handler = async (event, context) => {
   } catch (error) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Server error', details: error.message }),
+      body: JSON.stringify({ error: error.message }),
     };
   }
 };

@@ -13,6 +13,12 @@
     <h1>YouTube 컨텐츠 부스터</h1>
     <p>키워드를 입력하여 최신 트렌드 영상을 확인하세요.</p>
     <input type="text" id="searchInput" placeholder="검색어를 입력하세요">
+    
+    <!-- 체크박스 추가 -->
+    <label>
+        <input type="checkbox" id="shortsCheckbox"> 1분 미만의 영상(Shorts)만 검색
+    </label>
+    
     <button onclick="searchVideos()">검색</button>
 
     <div id="results"></div>
@@ -20,12 +26,13 @@
     <script>
         async function searchVideos() {
             const query = document.getElementById('searchInput').value;
+            const shortsOnly = document.getElementById('shortsCheckbox').checked;
             const oneMonthAgo = new Date();
             oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
             const publishedAfter = oneMonthAgo.toISOString();
 
             try {
-                const response = await fetch(`/.netlify/functions/search?q=${query}&publishedAfter=${publishedAfter}`);
+                const response = await fetch(`/.netlify/functions/search?q=${query}&publishedAfter=${publishedAfter}&shortsOnly=${shortsOnly}`);
                 const data = await response.json();
 
                 if (!data || (!data.shortsVideos && !data.regularVideos)) {
@@ -36,12 +43,9 @@
                 const resultsDiv = document.getElementById('results');
                 resultsDiv.innerHTML = ''; // 이전 결과 지우기
 
-                // shortsVideos 표시
-                if (data.shortsVideos.length > 0) {
-                    const shortsHeader = document.createElement('h2');
-                    shortsHeader.textContent = '🎥 Shorts 동영상';
-                    resultsDiv.appendChild(shortsHeader);
+                const videosToDisplay = shortsOnly ? data.shortsVideos : data.regularVideos;
 
+                if (videosToDisplay.length > 0) {
                     const table = document.createElement('table');
                     const headerRow = document.createElement('tr');
                     const headers = ['Thumbnail', 'Title', 'Views', 'Date', 'Channel', 'Subscribers'];
@@ -52,49 +56,7 @@
                     });
                     table.appendChild(headerRow);
 
-                    data.shortsVideos.forEach(item => {
-                        const row = document.createElement('tr');
-
-                        const thumbnailUrl = item.snippet.thumbnails.default.url;
-                        const title = item.snippet.title;
-                        const viewCount = item.statistics.viewCount;
-                        const publishedAt = new Date(item.snippet.publishedAt).toLocaleDateString();
-                        const channelTitle = item.snippet.channelTitle;
-                        const subscriberCount = item.statistics.subscriberCount || 'N/A';
-                        const videoUrl = `https://www.youtube.com/watch?v=${item.id}`;
-
-                        row.innerHTML = `
-                            <td><img src="${thumbnailUrl}" alt="Thumbnail"></td>
-                            <td><a href="${videoUrl}" target="_blank">${title}</a></td>
-                            <td>${viewCount}</td>
-                            <td>${publishedAt}</td>
-                            <td>${channelTitle}</td>
-                            <td>${subscriberCount}</td>
-                        `;
-
-                        table.appendChild(row);
-                    });
-
-                    resultsDiv.appendChild(table);
-                }
-
-                // regularVideos 표시
-                if (data.regularVideos.length > 0) {
-                    const regularHeader = document.createElement('h2');
-                    regularHeader.textContent = '📊 유튜브 트렌드를 파악했습니다!';
-                    resultsDiv.appendChild(regularHeader);
-
-                    const table = document.createElement('table');
-                    const headerRow = document.createElement('tr');
-                    const headers = ['Thumbnail', 'Title', 'Views', 'Date', 'Channel', 'Subscribers'];
-                    headers.forEach(headerText => {
-                        const th = document.createElement('th');
-                        th.textContent = headerText;
-                        headerRow.appendChild(th);
-                    });
-                    table.appendChild(headerRow);
-
-                    data.regularVideos.forEach(item => {
+                    videosToDisplay.forEach(item => {
                         const row = document.createElement('tr');
 
                         const thumbnailUrl = item.snippet.thumbnails.default.url;
