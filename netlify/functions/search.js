@@ -36,9 +36,10 @@ exports.handler = async (event, context) => {
         const shortsVideos = [];
         const regularVideos = [];
 
-        videoDetailsData.items.forEach(item => {
+        for (const item of videoDetailsData.items) {
+            const videoId = item.id;
+            const videoUrl = `https://www.youtube.com/shorts/${videoId}`;
             const duration = item.contentDetails.duration;
-            console.log(`Processing video: ${item.snippet.title}, duration: ${duration}`);
 
             const match = duration.match(/PT(?:(\d+)M)?(?:(\d+)S)?/);
             const minutes = match && match[1] ? parseInt(match[1]) : 0;
@@ -46,14 +47,20 @@ exports.handler = async (event, context) => {
 
             // 58초 이하의 영상과 1분 1초 이상의 영상을 구분
             if (minutes === 0 && seconds <= 58) {
-                shortsVideos.push(item);  // 58초 이하의 영상은 shorts로 분류
+                // 숏츠 URL이 유효한지 확인
+                const shortsResponse = await fetch(videoUrl);
+                if (shortsResponse.ok) {
+                    shortsVideos.push(item);  // 58초 이하의 유효한 숏츠 URL을 가진 영상은 shorts로 분류
+                } else {
+                    regularVideos.push(item);  // 숏츠 URL이 유효하지 않으면 regular로 분류
+                }
             } else if (minutes >= 1 || (minutes === 0 && seconds >= 61)) {
                 regularVideos.push(item);  // 1분 1초 이상의 영상은 regular로 분류
             }
-        });
+        }
 
         if (shortsOnly) {
-            // shortsOnly가 true인 경우, 58초 이하의 영상만 반환
+            // shortsOnly가 true인 경우, 58초 이하의 숏츠 URL이 유효한 영상만 반환
             return {
                 statusCode: 200,
                 body: JSON.stringify({ shortsVideos }),
