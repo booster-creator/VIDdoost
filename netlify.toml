@@ -1,0 +1,7 @@
+[build]
+  functions = "netlify/functions"  # Netlify Functions 폴더 경로
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
