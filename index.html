@@ -33,7 +33,7 @@
                 const response = await fetch(`/.netlify/functions/search?q=${query}&publishedAfter=${publishedAfter}&shortsOnly=${shortsOnly}`);
                 const data = await response.json();
 
-                if (!data || (!data.shortsVideos && !data.regularVideos)) {
+                if ((!data.shortsVideos || data.shortsVideos.length === 0) && (!data.regularVideos || data.regularVideos.length === 0)) {
                     console.log('검색 결과가 없습니다.');
                     return;
                 }
@@ -42,30 +42,25 @@
                 const resultsDiv = document.getElementById('results');
                 resultsDiv.innerHTML = ''; 
 
-                // 체크박스가 체크된 경우, shortsVideos와 regularVideos 중 선택하여 표시
-                const videosToDisplay = shortsOnly && data.shortsVideos.length > 0 
-                    ? data.shortsVideos 
-                    : data.regularVideos;
+                const videosToDisplay = shortsOnly ? data.shortsVideos : data.regularVideos;
 
-                if (videosToDisplay && videosToDisplay.length > 0) {
-                    videosToDisplay.forEach(item => {
-                        const thumbnailUrl = item.snippet.thumbnails.default.url;
-                        const title = item.snippet.title;
-                        const viewCount = item.statistics.viewCount;
-                        const publishedAt = new Date(item.snippet.publishedAt).toLocaleDateString();
-                        const channelTitle = item.snippet.channelTitle;
-                        const videoUrl = `https://www.youtube.com/watch?v=${item.id}`;
+                videosToDisplay.forEach(item => {
+                    const thumbnailUrl = item.snippet.thumbnails.default.url;
+                    const title = item.snippet.title;
+                    const viewCount = item.statistics.viewCount;
+                    const publishedAt = new Date(item.snippet.publishedAt).toLocaleDateString();
+                    const channelTitle = item.snippet.channelTitle;
+                    const videoUrl = `https://www.youtube.com/watch?v=${item.id}`;
 
-                        const videoElement = `
-                            <div>
-                                <img src="${thumbnailUrl}" alt="Thumbnail">
-                                <a href="${videoUrl}" target="_blank">${title}</a>
-                                <p>${viewCount} views - ${publishedAt} - ${channelTitle}</p>
-                            </div>
-                        `;
-                        resultsDiv.innerHTML += videoElement;
-                    });
-                }
+                    const videoElement = `
+                        <div>
+                            <img src="${thumbnailUrl}" alt="Thumbnail">
+                            <a href="${videoUrl}" target="_blank">${title}</a>
+                            <p>${viewCount} views - ${publishedAt} - ${channelTitle}</p>
+                        </div>
+                    `;
+                    resultsDiv.innerHTML += videoElement;
+                });
 
             } catch (error) {
                 console.error('검색 중 오류 발생:', error);
