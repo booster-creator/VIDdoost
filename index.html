@@ -42,10 +42,9 @@
                 const resultsDiv = document.getElementById('results');
                 resultsDiv.innerHTML = ''; 
 
-                // 체크박스가 체크된 경우, shortsVideos와 regularVideos 모두 표시
-                // 체크박스가 체크되지 않은 경우, regularVideos만 표시
-                const videosToDisplay = shortsOnly && data.shortsVideos 
-                    ? [...data.shortsVideos, ...data.regularVideos] 
+                // 체크박스가 체크된 경우, shortsVideos와 regularVideos 중 선택하여 표시
+                const videosToDisplay = shortsOnly && data.shortsVideos.length > 0 
+                    ? data.shortsVideos 
                     : data.regularVideos;
 
                 if (videosToDisplay && videosToDisplay.length > 0) {
