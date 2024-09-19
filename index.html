@@ -36,17 +36,20 @@
                 // Hit 동영상 표시
                 if (data.hitVideos.length > 0) {
                     const hitHeader = document.createElement('h2');
-                    hitHeader.textContent = 'Hit 동영상';
+                    hitHeader.textContent = '🎯 Hit 동영상';
                     resultsDiv.appendChild(hitHeader);
 
                     data.hitVideos.forEach(item => {
                         const title = item.snippet.title;
                         const viewCount = item.statistics.viewCount;
                         const subscriberCount = item.statistics.subscriberCount;
+                        const thumbnailUrl = item.snippet.thumbnails.default.url;
+                        const videoUrl = `https://www.youtube.com/watch?v=${item.id}`;
 
                         const videoElement = document.createElement('div');
                         videoElement.innerHTML = `
-                            <h3>${title}</h3>
+                            <h3><a href="${videoUrl}" target="_blank">${title}</a></h3>
+                            <p><img src="${thumbnailUrl}" alt="Thumbnail"></p>
                             <p>조회수: ${viewCount}</p>
                             <p>구독자 수: ${subscriberCount}</p>
                         `;
@@ -54,20 +57,23 @@
                     });
                 }
 
-                // 한 달 이내 조회수 순으로 정렬된 동영상 표시
+                // 최근 한 달 동안의 인기 동영상 표시
                 if (data.recentVideos.length > 0) {
                     const recentHeader = document.createElement('h2');
-                    recentHeader.textContent = '최근 한 달 동안의 인기 동영상';
+                    recentHeader.textContent = '📊 유튜브 트렌드를 파악했습니다!';
                     resultsDiv.appendChild(recentHeader);
 
                     data.recentVideos.forEach(item => {
                         const title = item.snippet.title;
                         const viewCount = item.statistics.viewCount;
                         const subscriberCount = item.statistics.subscriberCount;
+                        const thumbnailUrl = item.snippet.thumbnails.default.url;
+                        const videoUrl = `https://www.youtube.com/watch?v=${item.id}`;
 
                         const videoElement = document.createElement('div');
                         videoElement.innerHTML = `
-                            <h3>${title}</h3>
+                            <h3><a href="${videoUrl}" target="_blank">${title}</a></h3>
+                            <p><img src="${thumbnailUrl}" alt="Thumbnail"></p>
                             <p>조회수: ${viewCount}</p>
                             <p>구독자 수: ${subscriberCount}</p>
                         `;
