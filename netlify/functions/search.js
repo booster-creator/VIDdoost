@@ -25,33 +25,32 @@ exports.handler = async (event, context) => {
         if (!data.items || data.items.length === 0) {
             return {
                 statusCode: 200,
-                body: JSON.stringify({ shortsVideos: [], regularVideos: [] }),
+                body: JSON.stringify({ shortsVideos: [], regularVideos: [], topVideos: [] }),
             };
         }
 
         const videoIds = data.items.map(item => item.id.videoId);
         const videoDetailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&id=${videoIds.join(',')}&key=${apiKey}`;
         const videoDetailsResponse = await fetch(videoDetailsUrl);
-        const videoDetailsData = await videoDetailsResponse.json();
+        const videoDetailsData = await response.json();
 
         const shortsVideos = [];
         const regularVideos = [];
-        const topVideos = []; // 조회수/구독자 비율 상위와 최근 한달 조회수 상위 비디오들
+        const topVideos = [];
 
         for (const item of videoDetailsData.items) {
             const duration = item.contentDetails.duration;
-            const subscriberCount = item.statistics.subscriberCount || 1; // 구독자 수
-            const viewCount = item.statistics.viewCount || 0; // 조회수
+            const subscriberCount = item.statistics.subscriberCount || 1;
+            const viewCount = item.statistics.viewCount || 0;
 
             // 조회수/구독자 비율 계산
             const viewSubscriberRatio = (viewCount / subscriberCount) * 100;
 
-            // 30% 이상의 조회수/구독자 비율만 통과
+            // 30% 이상의 조회수/구독자 비율 통과
             if (viewSubscriberRatio >= 30) {
                 topVideos.push(item);
             }
 
-            // 58초 이하 영상과 1분 1초 이상의 영상 구분
             const match = duration.match(/PT(?:(\d+)M)?(?:(\d+)S)?/);
             const minutes = match && match[1] ? parseInt(match[1]) : 0;
             const seconds = match && match[2] ? parseInt(match[2]) : 0;
@@ -67,13 +66,11 @@ exports.handler = async (event, context) => {
         topVideos.sort((a, b) => b.statistics.viewCount - a.statistics.viewCount);
 
         if (shortsOnly) {
-            // shortsOnly가 true인 경우, 58초 이하의 숏츠 URL이 유효한 영상만 반환
             return {
                 statusCode: 200,
                 body: JSON.stringify({ shortsVideos, topVideos }),
             };
         } else {
-            // shortsOnly가 false인 경우, 1분 1초 이상의 영상만 반환
             return {
                 statusCode: 200,
                 body: JSON.stringify({ regularVideos, topVideos }),
