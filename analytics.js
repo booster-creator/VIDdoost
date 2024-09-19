@@ -4,16 +4,38 @@ function handleGoogleLogin() {
     // 로그인 성공 후 채널 목록 표시
     fetchChannels();
 }
-
 async function fetchChannels() {
     try {
-        const response = await fetch('/.netlify/functions/get-channels');
-        const channels = await response.json();
-        displayChannels(channels);
+      const response = await fetch('/.netlify/functions/get-channels');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const channels = await response.json();
+      if (!Array.isArray(channels)) {
+        throw new Error('Channels data is not an array');
+      }
+      displayChannels(channels);
     } catch (error) {
-        console.error('채널 정보 가져오기 실패:', error);
+      console.error('채널 정보 가져오기 실패:', error);
+      // 사용자에게 오류 메시지 표시
+      document.getElementById('channelList').innerHTML = '<p>채널 정보를 가져오는 데 실패했습니다. 다시 시도해주세요.</p>';
     }
-}
+  }
+  
+  function displayChannels(channels) {
+    const channelList = document.getElementById('channelListItems');
+    channelList.innerHTML = '';
+    if (channels.length === 0) {
+      channelList.innerHTML = '<li>연결된 채널이 없습니다.</li>';
+    } else {
+      channels.forEach(channel => {
+        const li = document.createElement('li');
+        li.innerHTML = `<button onclick="connectChannel('${channel.id}')">${channel.title}</button>`;
+        channelList.appendChild(li);
+      });
+    }
+    document.getElementById('channelList').style.display = 'block';
+  }
 
 function displayChannels(channels) {
     const channelList = document.getElementById('channelListItems');
