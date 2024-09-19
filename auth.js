@@ -1,3 +1,5 @@
+let googleAuth;
+
 function initGoogleAuth() {
   return new Promise((resolve, reject) => {
     gapi.load('auth2', () => {
@@ -8,6 +10,7 @@ function initGoogleAuth() {
             client_id: data.clientId,
             scope: 'https://www.googleapis.com/auth/youtube.readonly'
           }).then(auth => {
+            googleAuth = auth;
             console.log('Google Auth initialized');
             resolve(auth);
           }).catch(error => {
@@ -23,25 +26,18 @@ function initGoogleAuth() {
   });
 }
 
-function renderGoogleSignInButton() {
-  gapi.signin2.render('google-signin-button', {
-    'scope': 'https://www.googleapis.com/auth/youtube.readonly',
-    'width': 240,
-    'height': 50,
-    'longtitle': true,
-    'theme': 'dark',
-    'onsuccess': onSignIn,
-    'onfailure': onFailure
+function handleGoogleLogin() {
+  if (!googleAuth) {
+    console.error('Google Auth not initialized');
+    return;
+  }
+  
+  googleAuth.signIn().then(googleUser => {
+    const id_token = googleUser.getAuthResponse().id_token;
+    sendTokenToServer(id_token);
+  }).catch(error => {
+    console.error('Error during Google sign in:', error);
   });
-}
-
-function onSignIn(googleUser) {
-  var id_token = googleUser.getAuthResponse().id_token;
-  sendTokenToServer(id_token);
-}
-
-function onFailure(error) {
-  console.error('Google Sign-In failed:', error);
 }
 
 function sendTokenToServer(token) {
@@ -63,11 +59,10 @@ function sendTokenToServer(token) {
 }
 
 window.onload = () => {
-  initGoogleAuth()
-    .then(() => {
-      renderGoogleSignInButton();
-    })
-    .catch(error => {
-      console.error('Failed to initialize Google Auth:', error);
-    });
+  initGoogleAuth().catch(error => {
+    console.error('Failed to initialize Google Auth:', error);
+  });
 };
+
+// 전역 스코프에 함수 노출
+window.handleGoogleLogin = handleGoogleLogin;
